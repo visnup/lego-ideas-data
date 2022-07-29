@@ -1,5 +1,6 @@
 {
-  "name": "lego-ideas",
+  "name": "lego-ideas-data",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
