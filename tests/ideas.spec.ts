@@ -65,20 +65,35 @@ test("Crawl Lego Ideas", async ({ page }) => {
         waitUntil,
       });
 
+      // re-release?
+      const reRelease = page.locator("text=Re-released version of");
+      if (await reRelease.count()) await reRelease.locator("a").click();
+
       name = (await page.locator(".content h1").textContent())?.replace(
         /\d+: /,
         ""
       );
 
-      const field = page.locator("dt:has-text('Launch/exit') + dd");
-      if (await field.count()) {
-        const value = await field.textContent();
+      const launch = page.locator("dt:has-text('Launch/exit') + dd");
+      if (await launch.count()) {
+        const value = await launch.textContent();
         [releaseDate, retireDate] =
           value
             ?.split("-")
             .map((s) =>
               s.includes("t.b.a") ? undefined : new Date(s.trim())
             ) ?? [];
+      } else {
+        const unitedStates = page.locator(
+          "#shopLEGOComOutput dt:has-text('United States') + dd"
+        );
+        const value = await unitedStates.innerHTML();
+        [releaseDate, retireDate] =
+          value
+            ?.replace(/<br.*/, "")
+            .split("-")
+            .map((s) => (s.includes("now") ? undefined : new Date(s.trim()))) ??
+          [];
       }
     }
 
