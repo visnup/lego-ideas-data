@@ -98,14 +98,14 @@ test("Crawl Lego Ideas", async ({ page }) => {
     }
 
     stream.write({
-      url,
       idea,
       publishDate,
-      timeline,
       setNumber,
       name,
       releaseDate,
       retireDate,
+      timeline,
+      url,
     });
   }
   stream.end();
