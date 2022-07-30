@@ -4,7 +4,7 @@ import JSONStream from "JSONStream";
 
 const waitUntil = "domcontentloaded";
 
-test("Crawl Lego Ideas", async ({ page }) => {
+test("Crawl LEGO Ideas", async ({ page }) => {
   const stream = JSONStream.stringify();
   stream.pipe((await open("data.json", "w")).createWriteStream());
 
@@ -59,6 +59,7 @@ test("Crawl Lego Ideas", async ({ page }) => {
     let name: string | null | undefined;
     let releaseDate: Date | null | undefined;
     let retireDate: Date | null | undefined;
+    let pieces: number | null | undefined;
     if (setNumber) {
       // brickset
       await page.goto(`https://brickset.com/sets/${setNumber}-1/`, {
@@ -72,6 +73,10 @@ test("Crawl Lego Ideas", async ({ page }) => {
       name = (await page.locator(".content h1").textContent())?.replace(
         /\d+: /,
         ""
+      );
+
+      pieces = Number(
+        await page.locator("dt:has-text('Pieces') + dd").textContent()
       );
 
       const launch = page.locator("dt:has-text('Launch/exit') + dd");
@@ -102,6 +107,7 @@ test("Crawl Lego Ideas", async ({ page }) => {
       publishDate,
       setNumber,
       name,
+      pieces,
       releaseDate,
       retireDate,
       timeline,
