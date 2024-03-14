@@ -14,11 +14,16 @@ test("Crawl LEGO Ideas", async ({ page }) => {
   );
 
   // See more…
-  const seeMore = page.locator("text=See More");
+  const seeMore = page.getByText("See More");
   await seeMore.click();
 
   const cards = page.locator("h3.card-title > a[href^='/projects/']");
-  await expect.poll(() => cards.count()).toBeGreaterThan(30);
+  await expect
+    .poll(async () => {
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+      return cards.count();
+    })
+    .toBeGreaterThan(50);
 
   const urls = await cards.evaluateAll((r) =>
     r.map((e) => e.getAttribute("href"))
@@ -62,18 +67,26 @@ test("Crawl LEGO Ideas", async ({ page }) => {
     let pieces: number | null | undefined;
     if (setNumber) {
       // brickset
-      await page.goto(`https://brickset.com/sets/${setNumber}-1/`, {
-        waitUntil,
-      });
+      if (setNumber === "92177") setNumber = "21313";
+      if (setNumber === "92176") setNumber = "21309";
+      while (true) {
+        try {
+          await page.goto(`https://brickset.com/sets/${setNumber}-1/`, {
+            waitUntil,
+          });
+          name = (
+            await page.locator(".content h1").textContent({ timeout: 2e3 })
+          )?.replace(/\d+: /, "");
+          break;
+        } catch (e) {
+          // captcha
+          await page.context().clearCookies();
+        }
+      }
 
       // re-release?
       const reRelease = page.locator("text=Re-released version of");
-      if (await reRelease.count()) await reRelease.locator("a").click();
-
-      name = (await page.locator(".content h1").textContent())?.replace(
-        /\d+: /,
-        ""
-      );
+      if (await reRelease.count()) throw new Error("Re-release");
 
       pieces = Number(
         await page.locator("dt:has-text('Pieces') + dd").textContent()
